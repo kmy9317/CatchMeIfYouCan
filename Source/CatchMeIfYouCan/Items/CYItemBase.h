@@ -62,6 +62,10 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     USphereComponent* InteractionSphere;
 
+	// 아웃라인 전용 메시
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UStaticMeshComponent* OutlineMesh;
+
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnItemPickedUpDelegate OnItemPickedUpDelegate;
 

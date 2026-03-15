@@ -22,7 +22,17 @@ public class CatchMeIfYouCan : ModuleRules
 			"AnimGraphRuntime",
 			"Niagara",
 			"NiagaraCore",
-			"MotionWarping"
+			"MotionWarping",
+			
+			// OnlineSubSystem
+			"OnlineSubsystem",
+			"OnlineSubsystemEOS",
+			"OnlineSubsystemUtils",
+			
+			// NetDriver, Socket
+			"SocketSubSystemEOS",
+			"Sockets",
+			"Networking"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "AIModule" });

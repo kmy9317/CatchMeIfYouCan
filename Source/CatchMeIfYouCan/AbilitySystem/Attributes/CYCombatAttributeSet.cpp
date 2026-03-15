@@ -130,12 +130,12 @@ void UCYCombatAttributeSet::ApplyMovementRestrictions(ACharacter* Character, flo
         
         UE_LOG(LogTemp, Warning, TEXT("SLOWED: %s to %f"), *Character->GetName(), Speed);
     }
-    else if (Speed > 400.0f)
+    else if (Speed < 400.0f)
     {
         MovementComp->MaxAcceleration = 8192.0f;
         MovementComp->BrakingDecelerationWalking = 8192.0f;
         MovementComp->GroundFriction = 4.0f;
-        MovementComp->JumpZVelocity = 800.0f;
+        MovementComp->JumpZVelocity = 600.0f;
         
         // 네트워크 오류 체크 완화
         if (Character->HasAuthority())

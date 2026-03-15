@@ -182,23 +182,43 @@ void UCYItemInteractionComponent::UpdateLocalHighlight()
 
 void UCYItemInteractionComponent::ApplyHighlight(ACYItemBase* Item)
 {
-	if (!Item || !Item->ItemMesh) return;
+	if (!Item)
+	{
+		return;
+	}
     
-	// Stencil Buffer 값 설정 (Outline용)
-	Item->ItemMesh->SetRenderCustomDepth(true);
-	Item->ItemMesh->SetCustomDepthStencilValue(255); // Outline 스텐실 값
+	// OutlineMesh
+	if (Item->OutlineMesh)
+	{
+		if (Item->OutlineMesh->GetStaticMesh())
+		{
+			Item->OutlineMesh->SetRenderCustomDepth(true);
+			Item->OutlineMesh->SetCustomDepthStencilValue(255);
+			return;
+		}
+	}
     
-	UE_LOG(LogTemp, Log, TEXT("Applied stencil highlight to %s"), *Item->ItemName.ToString());
+	// ItemMesh
+	if (Item->ItemMesh)
+	{
+		Item->ItemMesh->SetRenderCustomDepth(true);
+		Item->ItemMesh->SetCustomDepthStencilValue(255);
+	}
 }
 
 void UCYItemInteractionComponent::RemoveHighlight(ACYItemBase* Item)
 {
 	if (!Item || !Item->ItemMesh) return;
     
-	// Stencil Buffer 해제
-	Item->ItemMesh->SetRenderCustomDepth(false);
-    
-	UE_LOG(LogTemp, Log, TEXT("Removed stencil highlight from %s"), *Item->ItemName.ToString());
+	// 아웃라인 메시가 있으면 끔
+	if (Item->OutlineMesh && Item->OutlineMesh->GetStaticMesh())
+	{
+		Item->OutlineMesh->SetRenderCustomDepth(false);
+	}
+	else if (Item->ItemMesh)
+	{
+		Item->ItemMesh->SetRenderCustomDepth(false);
+	}
 }
 
 void UCYItemInteractionComponent::CreateInteractionWidget(ACYItemBase* Item)

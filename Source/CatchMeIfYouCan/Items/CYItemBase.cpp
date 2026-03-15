@@ -34,6 +34,21 @@ ACYItemBase::ACYItemBase()
     InteractionSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
     InteractionSphere->SetCollisionObjectType(ECC_WorldDynamic);
 
+	// 아웃라인 전용 메시
+	OutlineMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("OutlineMesh"));
+	OutlineMesh->SetupAttachment(RootComponent);
+	OutlineMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	OutlineMesh->SetVisibility(true);
+	OutlineMesh->SetCastShadow(false);
+	OutlineMesh->bCastDynamicShadow = false;
+	OutlineMesh->bCastStaticShadow = false;
+	OutlineMesh->bVisibleInReflectionCaptures = false;
+	OutlineMesh->bVisibleInRayTracing = false;
+	OutlineMesh->bVisibleInRealTimeSkyCaptures = false;
+	OutlineMesh->SetRenderInMainPass(false);
+	OutlineMesh->SetRenderCustomDepth(false);
+	OutlineMesh->SetCustomDepthStencilValue(255);
+
     // 기본값 설정
     bIsPickedUp = false;
     ItemCount = 1;

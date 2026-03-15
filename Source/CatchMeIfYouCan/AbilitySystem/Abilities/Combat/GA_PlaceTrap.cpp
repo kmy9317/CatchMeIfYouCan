@@ -55,6 +55,8 @@ void UGA_PlaceTrap::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
+	ApplyTrapCooldown(Handle, ActorInfo, ActivationInfo);
+
 	// 소스 오브젝트(들고 있는 트랩)에서 트랩 아이템 가져오기
     ACYTrapBase* TrapItem = GetTrapItemFromSource();
     if (!TrapItem)
@@ -116,9 +118,6 @@ void UGA_PlaceTrap::OnPlaceTrapMontageCompleted()
 	
 	// 실제 트랩 설치 로직 실행
 	PerformTrapPlacement();
-
-	// 쿨다운 적용
-	ApplyTrapCooldown(CachedHandle, CachedActorInfo, CachedActivationInfo);
 	
 	// 어빌리티 종료
 	EndAbility(CachedHandle, CachedActorInfo, CachedActivationInfo, true, false);

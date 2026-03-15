@@ -212,7 +212,7 @@ void UGA_WeaponAttack::PerformAttack()
 	}
     
 	// 디버그 시각화 (개발 중에만 표시)
-	DrawMeleeAttackDebug(StartLocation, EndLocation, AttackRadius, bHit);
+	//DrawMeleeAttackDebug(StartLocation, EndLocation, AttackRadius, bHit);
 }
 
 bool UGA_WeaponAttack::IsOnCooldown(const FGameplayAbilityActorInfo* ActorInfo) const
@@ -307,6 +307,7 @@ void UGA_WeaponAttack::ApplyWeaponCooldown(const FGameplayAbilitySpecHandle Hand
 
 void UGA_WeaponAttack::DrawMeleeAttackDebug(const FVector& Start, const FVector& End, float Radius, bool bHit)
 {
+	/*
 	if (!GetWorld()) return;
     
 	FColor DebugColor = bHit ? FColor::Red : FColor::Green;
@@ -320,4 +321,5 @@ void UGA_WeaponAttack::DrawMeleeAttackDebug(const FVector& Start, const FVector&
     
 	// 시작 지점 표시
 	DrawDebugSphere(GetWorld(), Start, 20.0f, 8, FColor::Blue, false, DebugDuration);
+	*/
 }

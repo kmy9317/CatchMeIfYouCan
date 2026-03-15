@@ -251,7 +251,7 @@ void ACYPlayerCharacter::Input_Attack(const FInputActionValue& InputActionValue)
 	}
 	
 	// 둘 다 없으면 인벤토리 디버그 표시
-	ShowInventoryDebug();
+	//ShowInventoryDebug();
 }
 
 void ACYPlayerCharacter::ShowInventoryDebug()

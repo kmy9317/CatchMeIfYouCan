@@ -41,8 +41,8 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UBoxComponent> ExitVolume;
 
-	UPROPERTY(VisibleAnywhere)
-	UBillboardComponent* EditorSprite;
+	// UPROPERTY(VisibleAnywhere)
+	// UBillboardComponent* EditorSprite;
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UArrowComponent> ArrowComponent;

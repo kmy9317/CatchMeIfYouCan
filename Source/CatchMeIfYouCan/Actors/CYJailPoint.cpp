@@ -4,7 +4,6 @@
 #include "AbilitySystem/CYCombatGameplayTags.h"
 #include "Character/CYCharacterBase.h"
 #include "Components/ArrowComponent.h"
-#include "Components/BillboardComponent.h"
 #include "Components/BoxComponent.h"
 #include "GameModes/InGame/CYInGameState.h"
 #include "Player/CYPlayerState.h"
@@ -19,10 +18,10 @@ ACYJailPoint::ACYJailPoint()
 	ArrowComponent = CreateDefaultSubobject<UArrowComponent>(TEXT("ArrowComponent"));
 	ArrowComponent->SetupAttachment(RootComponent);
 	
-	EditorSprite = CreateDefaultSubobject<UBillboardComponent>(TEXT("EditorSprite"));
-	EditorSprite->SetupAttachment(RootComponent);
-	EditorSprite->SetHiddenInGame(true);
-	EditorSprite->bIsEditorOnly = true;
+	// EditorSprite = CreateDefaultSubobject<UBillboardComponent>(TEXT("EditorSprite"));
+	// EditorSprite->SetupAttachment(RootComponent);
+	// EditorSprite->SetHiddenInGame(true);
+	// EditorSprite->bIsEditorOnly = true;
 
 	ExitVolume = CreateDefaultSubobject<UBoxComponent>(TEXT("ExitVolume"));
 	ExitVolume->SetupAttachment(RootComponent);

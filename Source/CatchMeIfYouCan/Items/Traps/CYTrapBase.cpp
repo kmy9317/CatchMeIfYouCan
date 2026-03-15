@@ -74,7 +74,7 @@ void ACYTrapBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 bool ACYTrapBase::UseItem(ACYPlayerCharacter* Character)
 {
-    if (!Character || !HasAuthority()) return false;
+	if (!Character) return false;
     
     // GA_PlaceTrap 어빌리티 실행
     UCYAbilitySystemComponent* ASC = Cast<UCYAbilitySystemComponent>(Character->GetAbilitySystemComponent());
