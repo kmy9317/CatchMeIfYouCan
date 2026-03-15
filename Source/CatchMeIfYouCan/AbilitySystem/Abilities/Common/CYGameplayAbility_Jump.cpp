@@ -5,6 +5,7 @@
 
 #include "AbilitySystemComponent.h"
 #include "CYLogChannels.h"
+#include "AbilitySystem/CYCombatGameplayTags.h"
 #include "Character/CYCharacterBase.h"
 #include "Character/CYStatusGameplayTags.h"
 #include "Character/Components/CYCharacterMovementComponent.h"
@@ -114,9 +115,12 @@ void UCYGameplayAbility_Jump::StartJump()
 	{
 		return;
 	}
-	
-	CYCharacter->UnCrouch();
-	CYCharacter->Jump();
+
+	if (CYCharacter->IsLocallyControlled() && !CYCharacter->bPressedJump)
+	{
+		CYCharacter->UnCrouch();
+		CYCharacter->Jump();
+	}
 }
 
 void UCYGameplayAbility_Jump::StopJump()
@@ -126,10 +130,11 @@ void UCYGameplayAbility_Jump::StopJump()
 	{
 		return;
 	}
-
-	// 점프 중지 (점프 높이 조절)
-	CYCharacter->StopJumping();
-    
+	
+	if (CYCharacter->IsLocallyControlled() && CYCharacter->bPressedJump)
+	{
+		CYCharacter->StopJumping();
+	}
 	UE_LOG(LogCY, Warning, TEXT("Character Jump Stopped"));
 }
 
