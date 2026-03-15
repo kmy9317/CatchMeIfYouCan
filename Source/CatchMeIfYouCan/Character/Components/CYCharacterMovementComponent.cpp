@@ -128,9 +128,12 @@ void UCYCharacterMovementComponent::BeginClimbLadder(AActor* InLadder, const FVe
 	LadderAttachSpot = FMath::Clamp(InAttachSpot, 0.f, RailLength);
 
 	SetBase(nullptr);         
-	bJustTeleported = true;
+	//bJustTeleported = true;
 
-	if (bUseInterpolation)
+	const bool bShouldInterpolate = bUseInterpolation && 
+		(CharacterOwner->HasAuthority() || CharacterOwner->GetLocalRole() == ROLE_AutonomousProxy);
+
+	if (bShouldInterpolate)
 	{
 		bIsInterpolatingToLadder = true;
 		InterpStartLocation = UpdatedComponent->GetComponentLocation();
@@ -294,9 +297,6 @@ void UCYCharacterMovementComponent::UpdateLadderEntryInterpolation(float DeltaTi
 	{
 		SlideAlongSurface(Delta, 1.f - Hit.Time, Hit.Normal, Hit, /*bHandleImpact=*/true);
 	}
-
-	// 네트워크/스무딩 쪽 보정 끄기
-	bJustTeleported = true;
 
 	if (Alpha >= 1.f)
 	{
