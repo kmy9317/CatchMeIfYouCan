@@ -5,6 +5,36 @@
 #include "Character/CYStatusGameplayTags.h"
 #include "GameFramework/Character.h"
 
+namespace
+{
+	static int8 ComputeClimbInputFromAccel(const FVector& InAccel, const ACharacter* Character)
+	{
+		if (!Character || !Character->Controller)
+		{
+			return 0;
+		}
+
+		const FRotator Ctrl = Character->Controller->GetControlRotation();
+		const FRotator YawOnly(0.f, Ctrl.Yaw, 0.f);
+		const FVector ControllerForward = FRotationMatrix(YawOnly).GetUnitAxis(EAxis::X);
+
+		const FVector Accel2D = InAccel.GetSafeNormal2D();
+		const float RawAxis = FVector::DotProduct(Accel2D, ControllerForward);
+
+		constexpr float DeadZone = 0.2f;
+
+		if (RawAxis > DeadZone)
+		{
+			return 1;
+		}
+		if (RawAxis < -DeadZone)
+		{
+			return -1;
+		}
+		return 0;
+	}
+}
+
 UCYCharacterMovementComponent::UCYCharacterMovementComponent()
 {
 	SetNetworkMoveDataContainer(CYNetworkMoveDataContainer);
@@ -399,30 +429,7 @@ void UCYCharacterMovementComponent::UpdateClimbInputFromAcceleration()
 		return;
 	}
 
-	FRotator ControlRot = FRotator::ZeroRotator;
-	if (CharacterOwner && CharacterOwner->Controller)
-	{
-		const FRotator Ctrl = CharacterOwner->Controller->GetControlRotation();
-		ControlRot = FRotator(0.f, Ctrl.Yaw, 0.f);
-	}
-
-	const FVector ControllerForward = FRotationMatrix(ControlRot).GetUnitAxis(EAxis::X);
-	const float RawAxis = FVector::DotProduct(Acceleration.GetSafeNormal2D(), ControllerForward);
-
-	constexpr float DeadZone = 0.2f;
-
-	if (RawAxis > DeadZone)
-	{
-		ClimbInput = 1;
-	}
-	else if (RawAxis < -DeadZone)
-	{
-		ClimbInput = -1;
-	}
-	else
-	{
-		ClimbInput = 0;
-	}
+	ClimbInput = ComputeClimbInputFromAccel(Acceleration, CharacterOwner);
 }
 
 void UCYCharacterMovementComponent::ConsumeAndStartClimb()
@@ -708,7 +715,14 @@ void FSavedMove_CY::SetMoveFor(ACharacter* Character, float InDeltaTime, FVector
 		bWantsToClimb = CYMovementComponent->bWantsToClimb;
 		SavedLadderAttachSpot = CYMovementComponent->GetLadderAttachSpot();
 		SavedLadderPhase = static_cast<uint8>(CYMovementComponent->GetLadderPhase());
-		SavedClimbInput = CYMovementComponent->GetClimbInput();
+		if (bWantsToClimb && CYMovementComponent->GetLadderPhase() == ECYLadderPhase::Climbing)
+		{
+			SavedClimbInput = ComputeClimbInputFromAccel(NewAccel, Character);
+		}
+		else
+		{
+			SavedClimbInput = 0;
+		}
 		bSavedHasClimbStartRequest = CYMovementComponent->HasPendingClimbRequest();
 		if (bSavedHasClimbStartRequest)
 		{
