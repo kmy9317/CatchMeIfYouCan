@@ -105,9 +105,25 @@ void UCYGameplayAbility_ClimbLadder_Enter::ActivateAbility(const FGameplayAbilit
         // 몽타주 사용 → Middle/None만 Interpolate
         bUseInterpolation = (CurrentEntryType == ELadderEntryType::Middle || CurrentEntryType == ELadderEntryType::None);
     }
+
+    FCYLadderStartRequest ClimbRequest;
+    ClimbRequest.LadderActor = CurrentLadder;
+    ClimbRequest.LadderStart = LadderBottom;
+    ClimbRequest.LadderEnd = LadderTop;
+    ClimbRequest.LadderFacing = LadderFacing;
+    ClimbRequest.LadderStandOff = LadderStandOff;
+    ClimbRequest.InitialAttachSpot = InitialRailParameter;
+    ClimbRequest.bUseInterpolation = bUseInterpolation;
+    ClimbRequest.bClimbUp = bIsClimbingUp;
+    ClimbRequest.EntryType = static_cast<uint8>(CurrentEntryType);
+    const bool bIsLocallyControlled = CurrentActorInfo->IsLocallyControlled();
     
-    // 사다리 등반 시작
-    CachedMovementComponent->BeginClimbLadder(CurrentLadder, LadderBottom, LadderTop, LadderFacing, LadderStandOff,InitialRailParameter,  bUseInterpolation);
+    if (bIsLocallyControlled)
+    {
+        // 로컬 클라이언트: 예측 시작 (SavedMove → NetworkMoveData로 서버에 전달)
+        // 리슨 서버 호스트: 직접 시작 (네트워크 경로 불필요)
+        CachedMovementComponent->RequestStartClimb(ClimbRequest);
+    }
 
     if (bUseInterpolation)
     {
@@ -142,7 +158,10 @@ void UCYGameplayAbility_ClimbLadder_Enter::ActivateAbility(const FGameplayAbilit
     }
     else
     {
-        // 애님 몽타주 테스크 생성 실패 시 즉시 감시 시작
+        if (CachedMovementComponent)
+        {
+            CachedMovementComponent->NotifyEntryComplete();
+        }
         StartLadderExitMonitoring();
     }
 }
@@ -227,12 +246,6 @@ void UCYGameplayAbility_ClimbLadder_Enter::HandleLadderExitFromTop()
         EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
         return;
     }
-    // 이탈 모니터링 중지 (몽타주 재생 중 다시 트리거되는 것 방지)
-    if (ExitMonitorTask)
-    {
-        ExitMonitorTask->EndTask();
-        ExitMonitorTask = nullptr;
-    }
 
     if (CurrentLadder)
     {
@@ -245,7 +258,7 @@ void UCYGameplayAbility_ClimbLadder_Enter::HandleLadderExitFromTop()
     
     // 루트 모션 활성화 플래그 설정
     bIsPlayingExitMontage = true;
-
+    
     if (!TopExitMontage)
     {
         UE_LOG(LogCY, Warning, TEXT("ExecuteExitTop: No TopExitMontage assigned - ending climb directly"));
@@ -403,6 +416,11 @@ void UCYGameplayAbility_ClimbLadder_Enter::OnEntryMontageCompleted()
         EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
         return;
     }
+
+    
+    CachedMovementComponent->NotifyEntryComplete();
+    
+    
     StartLadderExitMonitoring();
 }
 
@@ -425,48 +443,17 @@ void UCYGameplayAbility_ClimbLadder_Enter::StartLadderExitMonitoring()
     }
     
     ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
-
     if (!Character)
     {
         EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
         return;
     }
+
+    // 중복 바인딩 방지: 이미 바인딩되어 있으면 먼저 제거
+    CachedMovementComponent->OnLadderPhaseChanged.RemoveDynamic(this, &ThisClass::OnLadderPhaseChanged);
     
-    const UCapsuleComponent* Capsule = Character->GetCapsuleComponent();
-    const float CapsuleHalfHeight = Capsule ? Capsule->GetScaledCapsuleHalfHeight() : 88.0f;
-    const float BottomThreshold = CurrentLadder->GetBottomSafetyMargin() + CapsuleHalfHeight;
-    const float TopThreshold = CurrentLadder->GetTopSafetyMargin();
-    const FVector LadderBottom = CurrentLadder->GetBottomWorldLocation();
-    const FVector LadderTop = CurrentLadder->GetTopWorldLocation();
-    const FVector LadderFacing = CurrentLadder->GetHorizontalFacingDirection();
-    
-    // 이탈 감시 태스크 생성 및 시작
-    constexpr float CheckRate = 0.02f; // 50Hz
-    ExitMonitorTask = UCYAbilityTask_WaitForLadderExit::CreateWaitForLadderExitTask(
-        this,
-        CurrentLadder,
-        LadderBottom,
-        LadderTop,
-        LadderFacing,
-        CheckRate,
-        BottomThreshold,
-        TopThreshold,
-        CachedEntryTargetLocation,
-        HorizontalDistanceSafetyMargin
-    );
-    
-    if (ExitMonitorTask)
-    {
-        ExitMonitorTask->OnExitTop.AddDynamic(this, &ThisClass::HandleLadderExitFromTop);
-        ExitMonitorTask->OnExitBottom.AddDynamic(this, &ThisClass::HandleLadderExitFromBottom);
-        ExitMonitorTask->OnCancelled.AddDynamic(this, &ThisClass::HandleLadderClimbingCancelled);
-        ExitMonitorTask->ReadyForActivation();
-    }
-    else
-    {
-        UE_LOG(LogCY, Error, TEXT("ClimbLadder_Enter: Failed to create exit monitor task"));
-        EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-    }
+    // CMC의 phase 변경 델리게이트 구독
+    CachedMovementComponent->OnLadderPhaseChanged.AddDynamic(this, &ThisClass::OnLadderPhaseChanged);
 }
 
 void UCYGameplayAbility_ClimbLadder_Enter::HandleLadderExitFromBottom()
@@ -491,6 +478,11 @@ void UCYGameplayAbility_ClimbLadder_Enter::OnTopExitMontageCompleted()
     }
     
     bIsPlayingExitMontage = false;
+
+    if (CachedMovementComponent && CachedMovementComponent->IsClimbingLadder())
+    {
+        CachedMovementComponent->EndClimbLadder(true);
+    }
 
     // 어빌리티 정상 종료
     EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
@@ -517,9 +509,33 @@ void UCYGameplayAbility_ClimbLadder_Enter::OnLadderEntryInterpolationComplete()
     {
         CachedMovementComponent->OnLadderEntryInterpolationComplete.RemoveDynamic(
             this, &ThisClass::OnLadderEntryInterpolationComplete);
+
+        CachedMovementComponent->NotifyEntryComplete();
     }
     
     StartLadderExitMonitoring();
+}
+
+void UCYGameplayAbility_ClimbLadder_Enter::OnLadderPhaseChanged(ECYLadderPhase NewPhase)
+{
+    switch (NewPhase)
+    {
+    case ECYLadderPhase::ExitingTop:
+        HandleLadderExitFromTop();
+        break;
+
+    case ECYLadderPhase::ExitingBottom:
+        HandleLadderExitFromBottom();
+        break;
+
+    case ECYLadderPhase::None:
+        // 외부 요인(점프 등)으로 climbing이 종료됨
+        HandleLadderClimbingCancelled();
+        break;
+
+    default:
+        break;
+    }
 }
 
 void UCYGameplayAbility_ClimbLadder_Enter::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
@@ -529,6 +545,9 @@ void UCYGameplayAbility_ClimbLadder_Enter::EndAbility(const FGameplayAbilitySpec
     {
         CachedMovementComponent->OnLadderEntryInterpolationComplete.RemoveDynamic(
             this, &ThisClass::OnLadderEntryInterpolationComplete);
+
+        CachedMovementComponent->OnLadderPhaseChanged.RemoveDynamic(
+            this, &ThisClass::OnLadderPhaseChanged);
     }
     
     // 태스크 정리

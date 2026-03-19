@@ -114,6 +114,7 @@ FVector ACYLadderBase::GetHorizontalFacingDirection() const
     }
     
     FVector Facing = FacingArrow->GetForwardVector();
+    Facing.Z = 0.f;
     return Facing.GetSafeNormal();
 }
 
@@ -129,10 +130,25 @@ float ACYLadderBase::GetTotalHeight() const
 
 ELadderEntryType ACYLadderBase::GetPlayerEntryType(const AActor* Player) const
 {
-    if (const ELadderEntryType* EntryType = PlayerEntryTypeMap.Find(Player))
+    if (!Player)
     {
-        return *EntryType;
+        return ELadderEntryType::None;
     }
+
+    // 우선순위: Top > Bottom > Middle (캐시가 아닌 즉시 조회)
+    if (TopEntryBox && TopEntryBox->IsOverlappingActor(Player))
+    {
+        return ELadderEntryType::Top;
+    }
+    if (BottomEntryBox && BottomEntryBox->IsOverlappingActor(Player))
+    {
+        return ELadderEntryType::Bottom;
+    }
+    if (MiddleEntryBox && MiddleEntryBox->IsOverlappingActor(Player))
+    {
+        return ELadderEntryType::Middle;
+    }
+
     return ELadderEntryType::None;
 }
 
@@ -286,7 +302,8 @@ bool ACYLadderBase::CanAutoGrabFromMiddle(const ACharacter* Character) const
     // 3. 사다리를 바라보고 있어야 함
     const FVector CharForward = Character->GetActorForwardVector();
     const FVector ToLadder = (GetActorLocation() - Character->GetActorLocation()).GetSafeNormal2D();
-    const float Angle = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(CharForward, ToLadder)));
+    const float ClampedDot = FMath::Clamp(FVector::DotProduct(CharForward, ToLadder), -1.f, 1.f);
+    const float Angle = FMath::RadiansToDegrees(FMath::Acos(ClampedDot));
     if (Angle > MaxAutoGrabAngle)
     {
         return false;
