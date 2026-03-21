@@ -7,7 +7,9 @@
 #include "CYGameplayAbility_ClimbLadder_Enter.generated.h"
 
 
+enum class ECYLadderPhase : uint8;
 enum class ELadderEntryType : uint8;
+
 class ACYLadderBase;
 class UCYCharacterMovementComponent;
 class UCYAbilityTask_WaitForLadderExit;
@@ -75,6 +77,10 @@ private:
 
     UFUNCTION()
     void OnLadderEntryInterpolationComplete();
+
+    /** CMC phase 변경 콜백 */
+    UFUNCTION()
+    void OnLadderPhaseChanged(ECYLadderPhase NewPhase);
     
 protected:
 
@@ -130,4 +136,5 @@ private:
 
     UPROPERTY(EditDefaultsOnly, Category="CY|Ladder|Debug")
     bool bShowDebugWarpTarget = true;
+    
 };

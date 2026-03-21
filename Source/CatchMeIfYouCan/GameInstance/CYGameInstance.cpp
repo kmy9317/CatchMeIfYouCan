@@ -7,7 +7,7 @@ void UCYGameInstance::Init()
 {
 	Super::Init();
 
-	InitializeOnlineSubsystems();
+	//InitializeOnlineSubsystems();
 }
 
 void UCYGameInstance::InitializeOnlineSubsystems()
