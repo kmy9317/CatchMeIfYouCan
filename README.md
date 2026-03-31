@@ -11,7 +11,7 @@
 | **엔진** | Unreal Engine 5.6.1 (C++) |
 | **네트워크** | Listen Server |
 | **인원** | 6인 (클라이언트 개발 4 · 레벨 디자인 1 · UI 1) |
-| **기간** | 2025.00.00 ~ 2025.00.00 |
+| **기간** | 2025.09.15 ~ 2025.10.22 |
 | **온라인** | EOS (Epic Online Services) |
 
 경찰은 도둑을 추격·체포하고, 도둑은 금고를 털며 생존하는 멀티플레이 게임입니다.  
@@ -36,10 +36,10 @@
 ## 담당 구현 (김민영)
 
 **인게임 모드 / 스테이트 설계**  
-- GameMode에서 PawnData 비동기 로드 후 팀 비율 기반 자동 분배, GameState에서 페이즈 머신과 승리 조건 판정을 관리
+- GameMode에서 PawnData 비동기 로드 후 팀 비율 기반 자동 분배, 승리 조건 판정, GameState 페이즈 관리
 
 **캐릭터 클래스 계층 구조**  
-- `CharacterBase → PlayerCharacter → Cop/Robber` 분기 구조, PawnData 기반 동적 능력 배정 및 Seamless Travel 시 상태 보존
+- `CharacterBase → PlayerCharacter → Cop/Robber` 분기 구조, PawnData 기반 동적 어빌리티 부여
 
 **상호작용 시스템 (GAS 기반)**  
 - 구체 스캔 + 레이캐스트 이중 감지 구조, 홀딩/즉시 분기 처리, 문/금고/체포/사다리 타입별 GA 계층 구성
