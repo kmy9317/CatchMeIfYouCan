@@ -2,14 +2,14 @@
 
 > "경찰은 추격하고, 도둑은 살아남는다."
 >
-> 6인 3인칭 멀티플레이 PVP 추격 액션. Unreal Engine 5.6 기반 C++ · GAS · Listen Server · EOS로 구현했습니다.
+> 3인칭 멀티플레이 PVP 추격 액션. Unreal Engine 5.6 기반 C++ · GAS · Listen Server · EOS로 구현했습니다.
 
 ---
 
 ## 📋 1. 프로젝트 개요 (Overview)
 
 * **프로젝트명:** CatchMeIfYouCan
-* **유형:** 6인 비대칭 멀티플레이 추격 액션 (경찰 vs 도둑)
+* **유형:** 멀티플레이 추격 액션 (경찰 vs 도둑)
 * **개발 인원:** 6인 (클라이언트 4 · 레벨 디자인 1 · UI 1)
 * **개발 기간:** 2025.09.15. ~ 2025.10.22. (약 5주)
 * **본인 역할:** 인게임 모드 / 캐릭터 클래스 / GAS 상호작용 / 사다리 등반 / 클라이언트 초기화 파이프라인
@@ -103,6 +103,6 @@ CharacterMovementComponent를 확장해 커스텀 이동 모드 `CMOVE_Climbing`
 
 ## 📚 7. 향후 확장 아이디어 (Future Plan)
 
-* **직업군 확장** : PawnData / AbilitySet 데이터 자산 추가만으로 신규 경찰·도둑 직업 도입
+* **직업군 확장** : PawnData / AbilitySet 데이터 에셋 추가만으로 신규 경찰·도둑 직업 도입
 * **전술 요소 추가** : 특수 무기, 감속 장판, 디코이 등 GAS 기반 신규 어빌리티 확장
 * **호스트 마이그레이션** : Listen Server 호스트 이탈 대응 (또는 Dedicated Server 전환)
